@@ -2,7 +2,7 @@ import requests
 
 def fetch_data(url, headers={}, params={}):
     try:
-        response = requests.get(url, headers=headers, params=params)
+        response = requests.get(url, headers=headers, params=params, verify=False)
         response.raise_for_status()
 
         if response.status_code == 200:
