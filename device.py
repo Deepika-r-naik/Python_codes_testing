@@ -1,4 +1,4 @@
-def getDeviceDetail(ome_instance, deviceName):
+def getDeviceDetail(url, deviceName):
     token = authentication(url)
     uri = f"https://{url}/api/.....= DeviceName eq '{deviceName}'"
     payload={}
@@ -21,6 +21,6 @@ def getDeviceDetail(ome_instance, deviceName):
             dict_data.append(data)
             return dict_data
         else:
-            log.critical(f"{status_code}: Error occured while fetching info about server {deviceName} on OME {ome_instance}")
+            log.critical(f"{status_code}: Error occured while fetching info about server {deviceName} on OME {url}")
     except Exception as e:
-        log.critical(f"Error occured while fetching info about server {deviceName} on OME {ome_instance} : {e}")
+        log.critical(f"Error occured while fetching info about server {deviceName} on OME {url} : {e}")
