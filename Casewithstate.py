@@ -42,3 +42,12 @@ def main():
 
 if __name__ == "__main__":
     main()
+
+
+#If you want all the states:
+
+ if isinstance(data, list):
+                for item in data:
+                    uid = item.get('uid')
+                    state = item.get('state')
+                    uid_states.append((uid, state))
