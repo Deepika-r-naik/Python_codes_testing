@@ -74,3 +74,9 @@ def main():
 
 if __name__ == "__main__":
     main()
+    
+    
+    ###To test if its getting all the values:
+    
+    uids = fetch_data(url, headers=headers, params=params)
+    print(uids)  # Print the list of uids
