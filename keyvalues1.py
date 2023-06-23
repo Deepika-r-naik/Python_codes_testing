@@ -227,3 +227,72 @@ def main():
 
 if __name__ == "__main__":
     main()
+#########################################################################
+
+import requests
+
+def fetch_data(url, headers={}, params={}):
+    try:
+        response = requests.get(url, headers=headers, params=params)
+        response.raise_for_status()
+
+        cases = {}  # Create an empty dictionary to store the cases
+
+        if response.status_code == 200:
+            data = response.json()
+
+            if isinstance(data, list):
+                for case in data:
+                    case_id = case.get('id')
+                    state = case.get('state')
+                    uid = case.get('uid')
+                    case_type = case.get('type')
+                    machine_model = case.get('machineModel')
+                    source_id_url = case.get('sourceIDURL')
+                    group_name = case.get('groupName')
+                    component_id_url = case.get('componentIDURL')
+                    device_uuid = case.get('deviceUUID')
+                    created_date = case.get('createdDate')
+                    ticket_type = case.get('ticketType')
+                    component_id = case.get('componentID')
+                    serial_number = case.get('serialNumber')
+                    event_id = case.get('eventID')
+
+                    if state != 'canceled':  # Filter based on state not equal to 'canceled'
+                        cases[case_id] = {
+                            'state': state,
+                            'uid': uid,
+                            'type': case_type,
+                            'machineModel': machine_model,
+                            'sourceIDURL': source_id_url,
+                            'groupName': group_name,
+                            'componentIDURL': component_id_url,
+                            'deviceUUID': device_uuid,
+                            'createdDate': created_date,
+                            'ticketType': ticket_type,
+                            'componentID': component_id,
+                            'serialNumber': serial_number,
+                            'eventID': event_id
+                        }
+
+            else:
+                print("Response data is not a list.")
+
+        else:
+            print(f"Request was not successful. Status code: {response.status_code}")
+
+        return cases  # Return the dictionary of cases
+
+    except requests.exceptions.RequestException as e:
+        print(f"Error fetching data: {e}")
+
+def main():
+    url = "https://test"
+    headers = {'Authorization': 'Basic .........'}
+    params = {'param1': 'value1', 'param2': 'value2'}
+
+    cases = fetch_data(url, headers=headers, params=params)
+    print(cases)  # Print the dictionary of cases
+
+if __name__ == "__main__":
+    main()
