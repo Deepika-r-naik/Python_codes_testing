@@ -18,11 +18,11 @@ def fetch_data():
             cases_count = len(case_list)
 
             for i in range(cases_count):
-                if case_list[i]['Status'] != 'Resolved':
+                if case_list[i]['state'] != 'canceled':
                     cases.append({
-                        'id': case_list[i]['Id'],
-                        'title': case_list[i]['Title'],
-                        'status': case_list[i]['Status']
+                        'uid': case_list[i]['id'],
+                        'msg': case_list[i]['msg'],
+                        'status': case_list[i]['status']
                     })
 
             if "@odata.nextLink" in result.keys():
