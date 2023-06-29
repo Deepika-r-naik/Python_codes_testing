@@ -76,4 +76,4 @@ def main():
 
 if __name__ == "__main__":
     main()
-
+#################################################### Parsing text format to Json and then storing values in dictionary
