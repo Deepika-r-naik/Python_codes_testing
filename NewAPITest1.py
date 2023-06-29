@@ -37,3 +37,43 @@ def main():
 
 if __name__ == "__main__":
     main()
+
+
+#####################################################################
+
+import requests
+
+def fetch_data(url, headers={}, params={}):
+    try:
+        response = requests.get(url, headers=headers, params=params)
+        response.raise_for_status()
+
+        content_type = response.headers.get("Content-Type", "")
+        if "application/json" in content_type:
+            data = response.json()
+            print(json.dumps(data, indent=4))  # Print data in JSON format
+        else:
+            response_text = response.text
+            data = {}
+
+            # Example: Parsing text in the format "key1:value1, key2:value2, key3:value3"
+            pairs = response_text.split(", ")
+            for pair in pairs:
+                key, value = pair.split(":")
+                data[key] = value
+
+            print(data)
+
+    except requests.exceptions.RequestException as e:
+        print(f"Error fetching data: {e}")
+
+def main():
+    url = "https://test"
+    headers = {'Authorization': 'Basic .........'}
+    params = {'param1': 'value1', 'param2': 'value2'}
+
+    fetch_data(url, headers=headers, params=params)
+
+if __name__ == "__main__":
+    main()
+
