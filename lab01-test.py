@@ -24,3 +24,17 @@ def fetch_ticket_details(management_server_IP):
             ticket_details[ticket_id] = additional_ticket_details
 
     return ticket_details
+
+############################################################
+
+    ticket_info = {
+        'ticket_id': ticket_id,
+        # Add other ticket attributes you want to include
+    }
+
+    # Access other ticket attributes as needed
+    print(f"Ticket ID: {ticket_id}")
+    print(ticket_info)
+    print()
+
+    return ticket_info
