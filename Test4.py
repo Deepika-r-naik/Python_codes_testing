@@ -89,4 +89,42 @@ if "application/json" in content_type:
 
     except requests.exceptions.RequestException as e:
         print(f"Error fetching data: {e}")
+##############################################################################################
+
+            if "application/json" in content_type:
+                data = response.json()
+                print(json.dumps(data, indent=4))  # Print data in JSON format
+            else:
+                data = {}  # Create an empty dictionary to store the parsed data
+
+                # Adjust the parsing logic to match your response text format
+                # Example parsing logic:
+                try:
+                    json_data = json.loads(response_text)
+                    if isinstance(json_data, dict):
+                        attributes = json_data.get("attributes", {})
+                        if attributes.get("state") != "Closed":
+                            data = attributes
+                    else:
+                        print("Data is not in the expected format.")
+                except json.JSONDecodeError:
+                    print("Unable to parse response data as JSON.")
+
+                if data:
+                    print(json.dumps(data, indent=4))  # Print parsed data in JSON format
+                    ticket_uri = data.get("uri")
+                    if ticket_uri:
+                        ticket_details = requests.get(ticket_uri, headers=headers)
+                        if ticket_details.status_code == 200:
+                            ticket_data = ticket_details.json()
+                            print(json.dumps(ticket_data, indent=4))  # Print ticket details in JSON format
+                        else:
+                            print(f"Failed to retrieve ticket details. Status code: {ticket_details.status_code}")
+                    else:
+                        print("Ticket URI not found.")
+        else:
+            print(f"Request was not successful. Status code: {response.status_code}")
+
+    except requests.exceptions.RequestException as e:
+        print(f"Error fetching data: {e}")
 
