@@ -47,3 +47,44 @@ else:
             "PMRType": ticket["PMRType"]
         }
         filtered_tickets[ticket["id"]] = filtered_ticket
+
+
+##############################
+
+import requests
+
+def fetch_open_tickets(api_url, headers=None, params=None):
+    response = requests.get(api_url, headers=headers, params=params)
+    if response.status_code == 200:
+        data = response.json()
+        open_tickets = []
+        for ticket in data["results"]:
+            if ticket["state"] != "Closed":
+                open_ticket = {
+                    "PmrUID": ticket["PmrUID"],
+                    "id": ticket["id"],
+                    "state": ticket["state"]
+                }
+                open_tickets.append(open_ticket)
+        return open_tickets
+    else:
+        print("Error: Unable to fetch data from the API")
+        return []
+
+def main():
+    api_url = "https://example.com/api/tickets"
+    headers = {
+        "Authorization": "Bearer <your_token>"
+    }
+    params = {
+        "param1": "value1",
+        "param2": "value2"
+    }
+
+    open_tickets = fetch_open_tickets(api_url, headers=headers, params=params)
+    for ticket in open_tickets:
+        print(ticket)
+
+if __name__ == "__main__":
+    main()
+
