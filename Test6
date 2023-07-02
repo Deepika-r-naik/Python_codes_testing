@@ -56,3 +56,16 @@ def main():
 
 if __name__ == "__main__":
     main()
+###########################################################
+
+content_type = response.headers.get("Content-Type", "")
+        if "application/json" in content_type:
+            data = response.json()
+
+            # Filter out key-value pairs where state is "Closed"
+            filtered_data = {key: value for key, value in data.items() if key != "state" or value != "Closed"}
+
+            print(json.dumps(filtered_data, indent=4))  # Print filtered data in JSON format
+
+    except requests.exceptions.RequestException as e:
+        print(f"Error fetching data: {e}")
