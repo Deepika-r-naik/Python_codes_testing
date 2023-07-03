@@ -34,3 +34,11 @@ def main():
     fetch_data()
 
 main()
+
+########################################################################
+
+            for ticket in open_tickets:
+                ticket_id = ticket["id"]
+                ticket_url = f"{url}/api/v1/data/serviceTickets/{ticket_id}"
+                ticket_response = requests.get(ticket_url, headers=headers, params=params, verify=False)
+                ticket_response_data = ticket_response.json()
