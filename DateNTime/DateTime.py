@@ -43,3 +43,12 @@ def save_to_database(server, utc_time, ist_time):
 # Usage:
 servers = ["server1", "server2", "server3"]  # List of server names
 fetch_patch_details(servers)
+
+
+=============================================================================
+
+def convert_to_timezone(time_string, hours, minutes):
+    original_time = datetime.strptime(time_string, '%Y-%m-%dT%H:%M:%SZ')  # Adjust format accordingly
+    converted_time = original_time + timedelta(hours=hours, minutes=minutes)
+    return converted_time.strftime('%Y-%m-%dT%H:%M:%SZ')  # Return in desired format
+
