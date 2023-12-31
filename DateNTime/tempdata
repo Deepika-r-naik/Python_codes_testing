@@ -1,0 +1,35 @@
+import json
+import requests
+
+res_ob = []  # Define res_ob list globally
+
+def getNextPatchWindowSub():
+    global fqdn  # Assuming fqdn is defined globally
+    sdi_user = config.get("app_config", "sdi_user")
+    sdi_pw = config.get("app.config", "sdi_pw")
+    response = requests.get("api_endpoint/" + fqdn, verify=False, auth=(sdi_user, sdi_pw), timeout=10)
+    
+    if response.status_code == 200:
+        response_data = response.json()
+        temp = {}  # Initialize temp dictionary
+
+        if "Patchgroup" in response_data:
+            patch_window = response_data["Patchgroup"]
+            temp["Patch_Window"] = convert_to_timezone(patch_window, hours=11, minutes=30)
+
+        if "next_patch" in response_data:
+            next_patch = response_data["next_patch"]
+            temp["Next_Patch"] = convert_to_timezone(next_patch, hours=5, minutes=30)
+
+        # Append only specific key-value pairs to res_ob
+        if temp:
+            temp["UTC_TimeZone"] = temp.get("Next_Patch", "")
+            temp["IST_TimeZone"] = temp.get("Next_Patch", "")
+            res_ob.append(temp)
+    else:
+        print(f"Failed to fetch data for {fqdn}. Status code: {response.status_code}")
+
+# Usage:
+fqdn = "AAAA"  # Set fqdn globally before calling the function
+getNextPatchWindowSub()
+print(res_ob)
