@@ -1,32 +1,23 @@
-# Function to fetch warranty details for Lenovo hardware
+
 def fetch_lenovo_warranty(serial_number):
-    # Code to interact with Lenovo API and fetch warranty details
-    # Replace this with actual implementation
-    return "Warranty details for Lenovo hardware"
 
-# Function to fetch warranty details for HP hardware
+      return "Warranty details for Lenovo hardware"
+
+
 def fetch_hp_warranty(serial_number):
-    # Code to interact with HP API and fetch warranty details
-    # Replace this with actual implementation
-    return "Warranty details for HP hardware"
+       return "Warranty details for HP hardware"
 
-# Function to fetch warranty details for Dell hardware
+
 def fetch_dell_warranty(serial_number):
-    # Code to interact with Dell API and fetch warranty details
-    # Replace this with actual implementation
     return "Warranty details for Dell hardware"
 
-# Function to fetch warranty details for ASUS hardware
-def fetch_asus_warranty(serial_number):
-    # Code to interact with ASUS API and fetch warranty details
-    # Replace this with actual implementation
-    return "Warranty details for ASUS hardware"
 
-# Function to access mapping file and determine hardware type
+def fetch_asus_warranty(serial_number):
+     return "Warranty details for ASUS hardware"
+
+
 def get_hardware_type(serial_number):
-    # Code to access mapping file and determine hardware type based on serial number
-    # Replace this with actual implementation
-    # For example, you might read from a CSV file or query a database
+
     hardware_mapping = {
         "123456789": "Lenovo",
         "987654321": "HP",
@@ -35,7 +26,7 @@ def get_hardware_type(serial_number):
     }
     return hardware_mapping.get(serial_number, "Unknown")
 
-# Main function to fetch warranty details based on serial number
+
 def fetch_warranty_details(serial_number):
     hardware_type = get_hardware_type(serial_number)
     
@@ -50,6 +41,6 @@ def fetch_warranty_details(serial_number):
     else:
         return "Unable to determine hardware type for given serial number"
 
-# Example usage
-serial_number = "123456789"  # Example serial number
+
+serial_number = "123456789"
 print(fetch_warranty_details(serial_number))
