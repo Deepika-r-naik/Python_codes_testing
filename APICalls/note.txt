@@ -1,0 +1,8 @@
+Assuming that the serial number and Manufacturer details are coming from another function.
+The warranty details function should fetch the warranty details of all the devices.
+
+Do we need all the records or do we need to filter them by applying warranty False condition
+
+separate functions for each hardware vendor calling their vendor API fetch the warranty details ->These functions are called by the warranty details function based on the manufacturer?
+are we returning the output or need to append to an empty list?
+whats the next step after this -> 
