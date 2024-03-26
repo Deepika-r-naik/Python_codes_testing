@@ -1,0 +1,57 @@
+import requests
+
+# Function to fetch warranty details for Lenovo hardware
+def fetch_lenovo_warranty(serial_number):
+    # Code to interact with Lenovo API and fetch warranty details
+    # Replace this with actual implementation
+    return "Warranty details for Lenovo hardware"
+
+# Function to fetch warranty details for HP hardware
+def fetch_hp_warranty(serial_number):
+    # Code to interact with HP API and fetch warranty details
+    # Replace this with actual implementation
+    return "Warranty details for HP hardware"
+
+# Function to fetch warranty details for Dell hardware
+def fetch_dell_warranty(serial_number):
+    # Code to interact with Dell API and fetch warranty details
+    # Replace this with actual implementation
+    return "Warranty details for Dell hardware"
+
+# Function to fetch warranty details for ASUS hardware
+def fetch_asus_warranty(serial_number):
+    # Code to interact with ASUS API and fetch warranty details
+    # Replace this with actual implementation
+    return "Warranty details for ASUS hardware"
+
+# Function to fetch warranty details based on serial number and hardware type
+def get_and_fetch_warranty(serial_number, hardware_type):
+    if hardware_type == "Lenovo":
+        return fetch_lenovo_warranty(serial_number)
+    elif hardware_type == "HP":
+        return fetch_hp_warranty(serial_number)
+    elif hardware_type == "Dell":
+        return fetch_dell_warranty(serial_number)
+    elif hardware_type == "ASUS":
+        return fetch_asus_warranty(serial_number)
+    else:
+        return f"Unable to determine hardware type for serial number {serial_number}"
+
+# Function to get serial number and hardware type using API
+def get_serial_and_hardware_type(api_endpoint):
+    try:
+        response = requests.get(api_endpoint)
+        if response.status_code == 200:
+            data = response.json()
+            return [(entry['serial_number'], entry['hardware_type']) for entry in data]
+        else:
+            return None
+    except requests.exceptions.RequestException as e:
+        print(f"Error: {e}")
+        return None
+
+# Example usage
+def process_serial_numbers(serial_numbers):
+    for serial_number, hardware_type in serial_numbers:
+        warranty_details = get_and_fetch_warranty(serial_number, hardware_type)
+   
