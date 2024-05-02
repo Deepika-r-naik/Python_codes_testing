@@ -18,24 +18,23 @@ Use the functions to interact with LXCO:
 lxco_countCase()
 This function retrieves the count of service tickets from LXCO.
 
-python
-Copy code
+
 count_data = lxco_countCase()
 print(count_data)
 lxco_getCases()
 This function retrieves and processes service tickets from LXCO, extracting relevant information.
 
-python
-Copy code
+
 cases_data = lxco_getCases()
 print(cases_data)
 fetch_lenovo_latest_comment(email, case_no)
 This function fetches the latest comment for a specified Lenovo case.
 
-python
-Copy code
+
 latest_comment = fetch_lenovo_latest_comment("example@email.com", "123456")
 print(latest_comment)
+
+
 Dependencies
 Python 3.x
 requests
