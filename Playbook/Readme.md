@@ -16,9 +16,13 @@ This Ansible playbook gathers various system information from target servers and
 
 ```bash
 ansible-playbook -i inventory.ini capture_system_info.yaml
+
+```bash
 ## What It Does
 Gathers system information such as uptime, disk usage, contents of /etc/fstab and /etc/shadow, network interfaces information, routing table, detailed network interfaces, and AD information.
 Stores the gathered information in a file located at /u/spool/30/Nutanix_Migration/premigrationcheck.<date>.<time>.
+
+```bash
 ## Additional Notes
 This playbook assumes the target servers are Linux-based.
 Ensure proper permissions are set on the destination directory (/u/spool/30/Nutanix_Migration) to allow writing the file.
