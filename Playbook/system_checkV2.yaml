@@ -1,0 +1,165 @@
+---
+- name: Capture system information and store in a file
+  hosts: target_servers
+  gather_facts: no
+
+  tasks:
+    - name: Get uptime
+      command: uptime
+      register: uptime_output
+
+    - name: Get system information
+      command: uname -a
+      register: uname_output
+
+    - name: Get disk usage
+      command: df -PTH
+      register: df_output
+
+    - name: Get /etc/fstab contents
+      command: cat /etc/fstab
+      register: fstab_output
+
+    - name: Get adinfo
+      command: adinfo
+      register: adinfo_output
+      ignore_errors: yes
+      failed_when: false
+
+    - name: Get /etc/shadow contents
+      command: cat /etc/shadow
+      register: shadow_output
+
+    - name: Get network interfaces information
+      command: ifconfig
+      register: ifconfig_output
+
+    - name: Get detailed network interfaces information
+      command: ifconfig -a
+      register: ifconfig_a_output
+
+    - name: Get routing table
+      command: route -n
+      register: route_output
+
+    - name: Get IP addresses
+      command: ip a
+      register: ip_output
+
+    - name: Get /etc/hosts contents
+      command: cat /etc/hosts
+      register: hosts_output
+
+    - name: Get Informix device information
+      command: ls -la /dev/informix
+      register: informix_output
+      ignore_errors: yes
+
+    - name: Get Informix udev rules
+      command: cat /etc/udev/rules.d/99-informix.rules
+      register: informix_rules_output
+      ignore_errors: yes
+
+    - name: Get Oracle device information
+      command: ls -la /dev/oracle
+      register: oracle_output
+      ignore_errors: yes
+
+    - name: Get Oracle udev rules
+      command: cat /etc/udev/rules.d/99-oracle.rules
+      register: oracle_rules_output
+      ignore_errors: yes
+
+    - name: Get LVM logical volumes
+      command: lvs
+      register: lvs_output
+
+    - name: Get LVM volume groups
+      command: vgs
+      register: vgs_output
+
+    - name: Get LVM physical volumes
+      command: pvs
+      register: pvs_output
+
+    - name: Get disk partitions
+      command: fdisk -l
+      register: fdisk_output
+
+    - name: Get disk information
+      command: lsblk
+      register: lsblk_output
+
+    - name: Create spool directory if it doesn't exist
+      file:
+        path: /u/spool/30/Nutanix_Migration
+        state: directory
+
+    - name: Touch a file
+      ansible.builtin.file:
+        path: /u/spool/30/Nutanix_Migration/premigrationcheck.txt
+        state: touch
+
+    - name: Write data to the file
+      copy:
+        content: |
+          Uptime:
+          {{ uptime_output.stdout }}
+
+          System Information:
+          {{ uname_output.stdout }}
+
+          Disk Usage:
+          {{ df_output.stdout }}
+
+          /etc/fstab contents:
+          {{ fstab_output.stdout }}
+
+          AD Information:
+          {{ adinfo_output.stdout | default('AD Information not available') }}
+
+          /etc/shadow contents:
+          {{ shadow_output.stdout }}
+
+          Network Interfaces:
+          {{ ifconfig_output.stdout }}
+
+          Detailed Network Interfaces:
+          {{ ifconfig_a_output.stdout }}
+
+          Routing Table:
+          {{ route_output.stdout }}
+
+          IP Addresses:
+          {{ ip_output.stdout }}
+
+          /etc/hosts contents:
+          {{ hosts_output.stdout }}
+
+          Informix Device Information:
+          {{ informix_output.stdout | default('Informix device information not available') }}
+
+          Informix udev rules:
+          {{ informix_rules_output.stdout | default('Informix udev rules not available') }}
+
+          Oracle Device Information:
+          {{ oracle_output.stdout | default('Oracle device information not available') }}
+
+          Oracle udev rules:
+          {{ oracle_rules_output.stdout | default('Oracle udev rules not available') }}
+
+          LVM Logical Volumes:
+          {{ lvs_output.stdout }}
+
+          LVM Volume Groups:
+          {{ vgs_output.stdout }}
+
+          LVM Physical Volumes:
+          {{ pvs_output.stdout }}
+
+          Disk Partitions:
+          {{ fdisk_output.stdout }}
+
+          Disk Information:
+          {{ lsblk_output.stdout }}
+        dest: /u/spool/30/Nutanix_Migration/premigrationcheck.txt
