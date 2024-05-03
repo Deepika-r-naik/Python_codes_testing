@@ -1,0 +1,152 @@
+---
+- name: Capture server information
+  hosts: all
+  become: yes
+  tasks:
+    - name: Define output directory
+      set_fact:
+        output_dir: "/u/spool/30/Nutanix_migration"
+
+    - name: Ensure output directory exists
+      file:
+        path: "{{ output_dir }}"
+        state: directory
+
+    - name: Run uptime command
+      command: uptime
+      register: uptime_output
+
+    - name: Save uptime output
+      copy:
+        content: "{{ uptime_output.stdout_lines | join('\n') }}"
+        dest: "{{ output_dir }}/uptime.txt"
+
+    - name: Run uname -a command
+      command: uname -a
+      register: uname_output
+
+    - name: Save uname -a output
+      copy:
+        content: "{{ uname_output.stdout_lines | join('\n') }}"
+        dest: "{{ output_dir }}/uname.txt"
+
+    - name: Run df -PTH command
+      command: df -PTH
+      register: df_output
+
+    - name: Save df -PTH output
+      copy:
+        content: "{{ df_output.stdout_lines | join('\n') }}"
+        dest: "{{ output_dir }}/df.txt"
+
+    - name: Run cat /etc/fstab command
+      command: cat /etc/fstab
+      register: fstab_output
+
+    - name: Save cat /etc/fstab output
+      copy:
+        content: "{{ fstab_output.stdout_lines | join('\n') }}"
+        dest: "{{ output_dir }}/fstab.txt"
+
+    - name: Run adinfo command
+      command: adinfo
+      register: adinfo_output
+
+    - name: Save adinfo output
+      copy:
+        content: "{{ adinfo_output.stdout_lines | join('\n') }}"
+        dest: "{{ output_dir }}/adinfo.txt"
+
+    - name: Run cat /etc/shadow command
+      command: cat /etc/shadow
+      register: shadow_output
+
+    - name: Save cat /etc/shadow output
+      copy:
+        content: "{{ shadow_output.stdout_lines | join('\n') }}"
+        dest: "{{ output_dir }}/shadow.txt"
+
+    - name: Run ifconfig command
+      command: ifconfig
+      register: ifconfig_output
+
+    - name: Save ifconfig output
+      copy:
+        content: "{{ ifconfig_output.stdout_lines | join('\n') }}"
+        dest: "{{ output_dir }}/ifconfig.txt"
+
+    - name: Run ifconfig -a command
+      command: ifconfig -a
+      register: ifconfig_a_output
+
+    - name: Save ifconfig -a output
+      copy:
+        content: "{{ ifconfig_a_output.stdout_lines | join('\n') }}"
+        dest: "{{ output_dir }}/ifconfig_a.txt"
+
+    - name: Run route -n command
+      command: route -n
+      register: route_output
+
+    - name: Save route -n output
+      copy:
+        content: "{{ route_output.stdout_lines | join('\n') }}"
+        dest: "{{ output_dir }}/route.txt"
+
+    - name: Run ip a command
+      command: ip a
+      register: ip_a_output
+
+    - name: Save ip a output
+      copy:
+        content: "{{ ip_a_output.stdout_lines | join('\n') }}"
+        dest: "{{ output_dir }}/ip_a.txt"
+
+    - name: Run cat /etc/hosts command
+      command: cat /etc/hosts
+      register: hosts_output
+
+    - name: Save cat /etc/hosts output
+      copy:
+        content: "{{ hosts_output.stdout_lines | join('\n') }}"
+        dest: "{{ output_dir }}/hosts.txt"
+
+    - name: Run ls -la /dev/infmx command
+      command: ls -la /dev/infmx
+      register: infmx_output
+      ignore_errors: yes
+
+    - name: Save ls -la /dev/infmx output
+      copy:
+        content: "{{ infmx_output.stdout_lines | join('\n') }}"
+        dest: "{{ output_dir }}/infmx.txt"
+
+    - name: Run cat /etc/udev/rules.d/99-informix.rules command
+      command: cat /etc/udev/rules.d/99-informix.rules
+      register: informix_rules_output
+      ignore_errors: yes
+
+    - name: Save cat /etc/udev/rules.d/99-informix.rules output
+      copy:
+        content: "{{ informix_rules_output.stdout_lines | join('\n') }}"
+        dest: "{{ output_dir }}/informix_rules.txt"
+
+    - name: Run ls -la /dev/oracle command
+      command: ls -la /dev/oracle
+      register: oracle_output
+      ignore_errors: yes
+
+    - name: Save ls -la /dev/oracle output
+      copy:
+        content: "{{ oracle_output.stdout_lines | join('\n') }}"
+        dest: "{{ output_dir }}/oracle.txt"
+
+    - name: Run cat /etc/udev/rules.d/99-oracle.rules command
+      command: cat /etc/udev/rules.d/99-oracle.rules
+      register: oracle_rules_output
+      ignore_errors: yes
+
+    - name: Save cat /etc/udev/rules.d/99-oracle.rules output
+      copy:
+        content: "{{ oracle_rules_output.stdout_lines | join('\n') }}"
+        dest: "{{ output_dir }}/oracle_rules.txt"
