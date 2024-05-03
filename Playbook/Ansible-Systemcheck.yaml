@@ -1,152 +1,130 @@
 ---
-- name: Capture server information
-  hosts: all
-  become: yes
+- name: Capture system information and store in a file
+  hosts: target_servers
+  gather_facts: no
+
   tasks:
-    - name: Define output directory
-      set_fact:
-        output_dir: "/u/spool/30/Nutanix_migration"
-
-    - name: Ensure output directory exists
-      file:
-        path: "{{ output_dir }}"
-        state: directory
-
-    - name: Run uptime command
+    - name: Get uptime
       command: uptime
       register: uptime_output
 
-    - name: Save uptime output
-      copy:
-        content: "{{ uptime_output.stdout_lines | join('\n') }}"
-        dest: "{{ output_dir }}/uptime.txt"
-
-    - name: Run uname -a command
+    - name: Get system information
       command: uname -a
       register: uname_output
 
-    - name: Save uname -a output
-      copy:
-        content: "{{ uname_output.stdout_lines | join('\n') }}"
-        dest: "{{ output_dir }}/uname.txt"
-
-    - name: Run df -PTH command
+    - name: Get disk usage
       command: df -PTH
       register: df_output
 
-    - name: Save df -PTH output
-      copy:
-        content: "{{ df_output.stdout_lines | join('\n') }}"
-        dest: "{{ output_dir }}/df.txt"
-
-    - name: Run cat /etc/fstab command
+    - name: Get /etc/fstab contents
       command: cat /etc/fstab
       register: fstab_output
 
-    - name: Save cat /etc/fstab output
-      copy:
-        content: "{{ fstab_output.stdout_lines | join('\n') }}"
-        dest: "{{ output_dir }}/fstab.txt"
-
-    - name: Run adinfo command
+    - name: Get adinfo
       command: adinfo
       register: adinfo_output
+      ignore_errors: yes
+      failed_when: false
 
-    - name: Save adinfo output
-      copy:
-        content: "{{ adinfo_output.stdout_lines | join('\n') }}"
-        dest: "{{ output_dir }}/adinfo.txt"
-
-    - name: Run cat /etc/shadow command
+    - name: Get /etc/shadow contents
       command: cat /etc/shadow
       register: shadow_output
 
-    - name: Save cat /etc/shadow output
-      copy:
-        content: "{{ shadow_output.stdout_lines | join('\n') }}"
-        dest: "{{ output_dir }}/shadow.txt"
-
-    - name: Run ifconfig command
+    - name: Get network interfaces information
       command: ifconfig
       register: ifconfig_output
 
-    - name: Save ifconfig output
-      copy:
-        content: "{{ ifconfig_output.stdout_lines | join('\n') }}"
-        dest: "{{ output_dir }}/ifconfig.txt"
-
-    - name: Run ifconfig -a command
+    - name: Get detailed network interfaces information
       command: ifconfig -a
       register: ifconfig_a_output
 
-    - name: Save ifconfig -a output
-      copy:
-        content: "{{ ifconfig_a_output.stdout_lines | join('\n') }}"
-        dest: "{{ output_dir }}/ifconfig_a.txt"
-
-    - name: Run route -n command
+    - name: Get routing table
       command: route -n
       register: route_output
 
-    - name: Save route -n output
-      copy:
-        content: "{{ route_output.stdout_lines | join('\n') }}"
-        dest: "{{ output_dir }}/route.txt"
-
-    - name: Run ip a command
+    - name: Get IP addresses
       command: ip a
-      register: ip_a_output
+      register: ip_output
 
-    - name: Save ip a output
-      copy:
-        content: "{{ ip_a_output.stdout_lines | join('\n') }}"
-        dest: "{{ output_dir }}/ip_a.txt"
-
-    - name: Run cat /etc/hosts command
+    - name: Get /etc/hosts contents
       command: cat /etc/hosts
       register: hosts_output
 
-    - name: Save cat /etc/hosts output
-      copy:
-        content: "{{ hosts_output.stdout_lines | join('\n') }}"
-        dest: "{{ output_dir }}/hosts.txt"
-
-    - name: Run ls -la /dev/infmx command
-      command: ls -la /dev/infmx
-      register: infmx_output
+    - name: Get Informix device information
+      command: ls -la /dev/informix
+      register: informix_output
       ignore_errors: yes
 
-    - name: Save ls -la /dev/infmx output
-      copy:
-        content: "{{ infmx_output.stdout_lines | join('\n') }}"
-        dest: "{{ output_dir }}/infmx.txt"
-
-    - name: Run cat /etc/udev/rules.d/99-informix.rules command
+    - name: Get Informix udev rules
       command: cat /etc/udev/rules.d/99-informix.rules
       register: informix_rules_output
       ignore_errors: yes
 
-    - name: Save cat /etc/udev/rules.d/99-informix.rules output
-      copy:
-        content: "{{ informix_rules_output.stdout_lines | join('\n') }}"
-        dest: "{{ output_dir }}/informix_rules.txt"
-
-    - name: Run ls -la /dev/oracle command
+    - name: Get Oracle device information
       command: ls -la /dev/oracle
       register: oracle_output
       ignore_errors: yes
 
-    - name: Save ls -la /dev/oracle output
-      copy:
-        content: "{{ oracle_output.stdout_lines | join('\n') }}"
-        dest: "{{ output_dir }}/oracle.txt"
-
-    - name: Run cat /etc/udev/rules.d/99-oracle.rules command
+    - name: Get Oracle udev rules
       command: cat /etc/udev/rules.d/99-oracle.rules
       register: oracle_rules_output
       ignore_errors: yes
 
-    - name: Save cat /etc/udev/rules.d/99-oracle.rules output
+    - name: Create spool directory if it doesn't exist
+      file:
+        path: /u/spool/30/Nutanix_Migration
+        state: directory
+
+    - name: Touch a file
+      ansible.builtin.file:
+        path: /u/spool/30/Nutanix_Migration/premigrationcheck
+        state: touch
+
+    - name: Write data to the file
       copy:
-        content: "{{ oracle_rules_output.stdout_lines | join('\n') }}"
-        dest: "{{ output_dir }}/oracle_rules.txt"
+        content: |
+          Uptime:
+          {{ uptime_output.stdout }}
+
+          System Information:
+          {{ uname_output.stdout }}
+
+          Disk Usage:
+          {{ df_output.stdout }}
+
+          /etc/fstab contents:
+          {{ fstab_output.stdout }}
+
+          AD Information:
+          {{ adinfo_output.stdout | default('AD Information not available') }}
+
+          /etc/shadow contents:
+          {{ shadow_output.stdout }}
+
+          Network Interfaces:
+          {{ ifconfig_output.stdout }}
+
+          Detailed Network Interfaces:
+          {{ ifconfig_a_output.stdout }}
+
+          Routing Table:
+          {{ route_output.stdout }}
+
+          IP Addresses:
+          {{ ip_output.stdout }}
+
+          /etc/hosts contents:
+          {{ hosts_output.stdout }}
+
+          Informix Device Information:
+          {{ informix_output.stdout | default('Informix device information not available') }}
+
+          Informix udev rules:
+          {{ informix_rules_output.stdout | default('Informix udev rules not available') }}
+
+          Oracle Device Information:
+          {{ oracle_output.stdout | default('Oracle device information not available') }}
+
+          Oracle udev rules:
+          {{ oracle_rules_output.stdout | default('Oracle udev rules not available') }}
+        dest: /u/spool/30/Nutanix_Migration/premigrationcheck
