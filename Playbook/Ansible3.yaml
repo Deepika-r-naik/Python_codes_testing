@@ -1,0 +1,89 @@
+---
+- name: Capture system information and store in a file
+  hosts: target_servers
+  gather_facts: no
+
+  tasks:
+    - name: Get current date and time
+      set_fact:
+        current_date: "{{ ansible_date_time.date }}"
+        current_time: "{{ ansible_date_time.hour }}.{{ ansible_date_time.minute }}.{{ ansible_date_time.second }}"
+
+    - name: Get uptime
+      command: uptime
+      register: uptime_output
+
+    - name: Get disk usage
+      command: df -h
+      register: df_output
+
+    - name: Get /etc/fstab contents
+      command: cat /etc/fstab
+      register: fstab_output
+
+    - name: Get /etc/shadow contents
+      command: cat /etc/shadow
+      register: shadow_output
+
+    - name: Get network interfaces information
+      command: ifconfig -a
+      register: ifconfig_output
+
+    - name: Get routing table
+      command: route -n
+      register: route_output
+
+    - name: Get detailed network interfaces information
+      command: ip a
+      register: ip_output
+
+    - name: Get adinfo
+      command: adinfo
+      register: adinfo_output
+      ignore_errors: yes
+      failed_when: false
+
+    - name: Store information in a file
+      block:
+        - name: Create spool directory if it doesn't exist
+          file:
+            path: /u/spool/30/Nutanix_Migration
+            state: directory
+
+        - name: Touch a file with today's date
+          command: touch "/u/spool/30/Nutanix_Migration/premigrationcheck.{{ current_date }}.{{ current_time }}"
+          args:
+            creates: "/u/spool/30/Nutanix_Migration/premigrationcheck.{{ current_date }}.{{ current_time }}"
+
+        - name: Write data to the file
+          copy:
+            content: |
+              Uptime:
+              {{ uptime_output.stdout }}
+
+              Disk Usage:
+              {{ df_output.stdout }}
+
+              /etc/fstab contents:
+              {{ fstab_output.stdout }}
+
+              /etc/shadow contents:
+              {{ shadow_output.stdout }}
+
+              Network Interfaces:
+              {{ ifconfig_output.stdout }}
+
+              Routing Table:
+              {{ route_output.stdout }}
+
+              Detailed Network Interfaces:
+              {{ ip_output.stdout }}
+
+              {% if adinfo_output.stdout is defined %}
+              AD Information:
+              {{ adinfo_output.stdout }}
+              {% else %}
+              AD Information not available
+              {% endif %}
+            dest: "/u/spool/30/Nutanix_Migration/premigrationcheck.{{ current_date }}.{{ current_time }}"
+      when: adinfo_output.stdout is defined
