@@ -43,47 +43,45 @@
       ignore_errors: yes
       failed_when: false
 
-    - name: Store information in a file
-      block:
-        - name: Create spool directory if it doesn't exist
-          file:
-            path: /u/spool/30/Nutanix_Migration
-            state: directory
+    - name: Create spool directory if it doesn't exist
+      file:
+        path: /u/spool/30/Nutanix_Migration
+        state: directory
 
-        - name: Touch a file with today's date
-          command: touch "/u/spool/30/Nutanix_Migration/premigrationcheck.{{ current_date }}.{{ current_time }}"
-          args:
-            creates: "/u/spool/30/Nutanix_Migration/premigrationcheck.{{ current_date }}.{{ current_time }}"
+    - name: Touch a file with today's date
+      ansible.builtin.file:
+        path: "/u/spool/30/Nutanix_Migration/premigrationcheck.{{ current_date }}.{{ current_time }}"
+        state: touch
 
-        - name: Write data to the file
-          copy:
-            content: |
-              Uptime:
-              {{ uptime_output.stdout }}
+    - name: Write data to the file
+      copy:
+        content: |
+          Uptime:
+          {{ uptime_output.stdout }}
 
-              Disk Usage:
-              {{ df_output.stdout }}
+          Disk Usage:
+          {{ df_output.stdout }}
 
-              /etc/fstab contents:
-              {{ fstab_output.stdout }}
+          /etc/fstab contents:
+          {{ fstab_output.stdout }}
 
-              /etc/shadow contents:
-              {{ shadow_output.stdout }}
+          /etc/shadow contents:
+          {{ shadow_output.stdout }}
 
-              Network Interfaces:
-              {{ ifconfig_output.stdout }}
+          Network Interfaces:
+          {{ ifconfig_output.stdout }}
 
-              Routing Table:
-              {{ route_output.stdout }}
+          Routing Table:
+          {{ route_output.stdout }}
 
-              Detailed Network Interfaces:
-              {{ ip_output.stdout }}
+          Detailed Network Interfaces:
+          {{ ip_output.stdout }}
 
-              {% if adinfo_output.stdout is defined %}
-              AD Information:
-              {{ adinfo_output.stdout }}
-              {% else %}
-              AD Information not available
-              {% endif %}
-            dest: "/u/spool/30/Nutanix_Migration/premigrationcheck.{{ current_date }}.{{ current_time }}"
+          {% if adinfo_output.stdout is defined %}
+          AD Information:
+          {{ adinfo_output.stdout }}
+          {% else %}
+          AD Information not available
+          {% endif %}
+        dest: "/u/spool/30/Nutanix_Migration/premigrationcheck.{{ current_date }}.{{ current_time }}"
       when: adinfo_output.stdout is defined
