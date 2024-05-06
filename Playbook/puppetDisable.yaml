@@ -1,0 +1,10 @@
+---
+- name: Disable Puppet for AHV move
+  hosts: all
+  gather_facts: no
+  tasks:
+    - name: Run gpuppet noop command
+      ansible.builtin.command: gpuppet noop -r 'disable puppet for AHV move'
+
+
+//ansible-playbook -i /path/to/inventory.yaml disable_puppet.yaml
