@@ -1,0 +1,8 @@
+---
+- name: Enforce Puppet for AHV move
+  hosts: all
+  gather_facts: no
+  tasks:
+    - name: Run gpuppet enforce command
+      ansible.builtin.command: gpuppet enforce
+## ansible-playbook -i /path/to/inventory.yaml enforce_puppet.yaml
