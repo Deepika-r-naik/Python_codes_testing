@@ -22,7 +22,7 @@ This script requires Python 3.x to be installed on your system.
 
 ## Example
 
-```bash
-$ python sha256_hash_calculator.py
-Enter the string to hash: Hello, world!
-SHA-256 hash of "Hello, world!": e4d7f1b4ed2e42d15898f4b27b019da4a1bc9e3c5fa2c45cdef3f48bd20f8f98
+# Example usage:
+data = "Hello, world!"
+sha256_hash = get_sha256_hash(data)
+print("SHA-256 hash of", data, ":", sha256_hash)
