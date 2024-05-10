@@ -16,6 +16,8 @@ This Ansible playbook is designed to capture various system information from mul
 
 3. Run the playbook using the following command:
 
+   ansible-playbook -i <inventory_file> capture_server_info.yml
+
 Replace `<inventory_file>` with the path to your Ansible inventory file containing the list of target servers.
 
 4. The playbook will execute various commands on each server, capture their outputs, and save them into a single file named `server_info.txt` in the specified directory (`/u/spool/30/Nutanix_migration` by default) on each server.
