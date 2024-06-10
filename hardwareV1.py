@@ -1,0 +1,295 @@
+import requests
+import json
+import urllib3
+import base64
+import logging.config
+from os import path
+from config.config import load_config, read_environment
+from auth import parse_credentials
+import hashlib
+
+# Load logging configuration
+log_file_path = path.join(path.dirname(__file__), "logging.conf")
+logging.config.fileConfig(log_file_path, disable_existing_loggers=False)
+log = logging.getLogger("logfile")
+
+# Load environment and configuration
+ENV = read_environment()
+config = load_config()
+PATH = path.dirname(__file__)
+
+def convert_to_sha256(asus_password):
+    """
+    Convert a plain text password to SHA-256 hash.
+
+    Args:
+        asus_password (str): Plain text password.
+
+    Returns:
+        str: SHA-256 hashed password.
+    """
+    hashed_password = hashlib.sha256(asus_password.encode('utf8')).hexdigest()
+    return hashed_password
+
+def aus_authentication():
+    """
+    Authenticate with the ASUS API.
+
+    Returns:
+        bool: True if authentication is successful, False otherwise.
+    """
+    asus_api = config["asus_api"]
+    asus_username = config["asus_username"]
+    asus_password = convert_to_sha256(config["asus_password"])
+    payload = json.dumps({"username": asus_username, "password": asus_password})
+    headers = {"Content-Type": "application/json"}
+    response = requests.post(asus_api, data=payload, headers=headers)
+    if response.status_code == 200:
+        log.info("Authentication Successful")
+        return response.json()["token"]
+    else:
+        log.info("Authentication Failed")
+        return False
+
+def create_case(serial_number, short_desc, description):
+    """
+    Create a new case in the ASUS system.
+
+    Args:
+        serial_number (str): Serial number of the device.
+        short_desc (str): Short description of the case.
+        description (str): Detailed description of the case.
+
+    Returns:
+        dict or bool: Case details if successful, False otherwise.
+    """
+    asus_case_create_api = config["asus_case_create_api"]
+    payload = json.dumps({
+        "apply_user": "username",
+        "customer_id": "cust_011",
+        "memo": short_desc,
+        "description": description,
+        "serial_no": serial_number,
+        "claimcode": [{"claimcode": "sdfd", "climit": "sdfsddf"}]
+    })
+    authtoken = aus_authentication()
+    headers = {
+        "Authorization": f"Bearer {authtoken}",
+        "Content-Type": "application/json",
+    }
+    log.info(f"Trying to create a case with the given serial_number: {serial_number}, case_title: {short_desc} and case_description: {description}")
+
+    try:
+        response = requests.post(asus_case_create_api, data=payload, headers=headers)
+        if response.status_code == 200:
+            log.info("Case Created Successfully")
+            case_details = {
+                "case_id": response.json()["case_id"],
+                "serial_number": serial_number,
+                "device_type": "ASUS",
+                "case_title": short_desc,
+                "case_description": description,
+            }
+            return case_details
+        else:
+            log.info("Case Creation Failed")
+            return False
+    except Exception as e:
+        log.info(f"Exception Occurred: {e}")
+        return False
+
+def convert_to_base64_case_id(case_id):
+    """
+    Convert a case ID to a Base64 encoded string.
+
+    Args:
+        case_id (str): Case ID.
+
+    Returns:
+        str: Base64 encoded case ID.
+    """
+    rma_string = f"rmaNo{case_id}"
+    base64_case_id = base64.b64encode(rma_string.encode('utf-8')).decode('utf-8')
+    return base64_case_id
+
+def check_case_details(case_id):
+    """
+    Check the details of an existing case.
+
+    Args:
+        case_id (str): Case ID.
+
+    Returns:
+        dict or bool: Case details if successful, False otherwise.
+    """
+    authtoken = aus_authentication()
+    base64rma = convert_to_base64_case_id(case_id)
+    url = f"{config['asus_check_case_api']}/{base64rma}"
+    headers = {
+        "Authorization": f"Bearer {authtoken}",
+        "Content-Type": "application/json",
+    }
+
+    try:
+        response = requests.get(url, headers=headers)
+        if response.status_code == 200:
+            log.info("Case Details Fetched Successfully")
+            case_info = response.json()
+            return {
+                "case_id": case_id,
+                "case_title": case_info["case_title"],
+                "case_description": case_info["case_description"],
+                "serial_number": case_info["serial_no"],
+                "device_type": case_info["device_type"],
+                "status": case_info["status"],
+                "claimcode": case_info["claimcode"],
+                "memo": case_info["memo"],
+            }
+        else:
+            log.info("Failed to fetch case details")
+            return False
+    except Exception as e:
+        log.info(f"Exception Occurred: {e}")
+        return False
+
+def convert_to_base64_serial_no(serial_number):
+    """
+    Convert a serial number to a Base64 encoded string.
+
+    Args:
+        serial_number (str): Serial number.
+
+    Returns:
+        str: Base64 encoded serial number.
+    """
+    serial_string = f"serialNo{serial_number}"
+    base64_serial_number = base64.b64encode(serial_string.encode('utf-8')).decode('utf-8')
+    return base64_serial_number
+
+def fetch_repair_details(serial_number):
+    """
+    Fetch the repair details of a device using its serial number.
+
+    Args:
+        serial_number (str): Serial number of the device.
+
+    Returns:
+        dict or bool: Repair details if successful, False otherwise.
+    """
+    authtoken = aus_authentication()
+    base64serial = convert_to_base64_serial_no(serial_number)
+    url = f"{config['asus_fetch_repair_details_api']}/{base64serial}"
+    headers = {
+        "Authorization": f"Bearer {authtoken}",
+        "Content-Type": "application/json",
+    }
+
+    try:
+        response = requests.get(url, headers=headers)
+        if response.status_code == 200:
+            log.info("Repair Details Fetched Successfully")
+            repair_details = response.json()
+            return {
+                "serial_number": serial_number,
+                "device_type": repair_details["device_type"],
+                "repair_status": repair_details["repair_status"],
+                "repair_date": repair_details["repair_date"],
+                "repair_location": repair_details["repair_location"],
+                "repair_cost": repair_details["repair_cost"],
+                "repair_reason": repair_details["repair_reason"],
+                "repair_memo": repair_details["repair_memo"],
+            }
+        else:
+            log.info("Failed to fetch repair details")
+            return False
+    except Exception as e:
+        log.info(f"Exception Occurred: {e}")
+        return False
+
+def add_comment_to_case(case_id, comment):
+    """
+    Add a comment to an existing case.
+
+    Args:
+        case_id (str): Case ID.
+        comment (str): Comment to be added.
+
+    Returns:
+        bool: True if successful, False otherwise.
+    """
+    authtoken = aus_authentication()
+    base64rma = convert_to_base64_case_id(case_id)
+    url = f"{config['asus_add_comment_to_case_api']}/{base64rma}"
+    headers = {
+        "Authorization": f"Bearer {authtoken}",
+        "Content-Type": "application/json",
+    }
+    payload = {
+        "comment": comment,
+        "user_id": "123456789",
+        "rma_number": case_id,
+    }
+
+    try:
+        response = requests.post(url, headers=headers, json=payload)
+        if response.status_code == 200:
+            log.info("Comment Added Successfully")
+            return True
+        else:
+            log.info("Failed to add comment")
+            return False
+    except Exception as e:
+        log.info(f"Exception Occurred: {e}")
+        return False
+
+def upload_attachment_to_case(case_id, file_path, serial_number, file_name, comment):
+    """
+    Upload an attachment to an existing case.
+
+    Args:
+        case_id (str): Case ID.
+        file_path (str): Path to the file to be uploaded.
+        serial_number (str): Serial number of the device.
+        file_name (str): Name of the file.
+        comment (str): Comment about the attachment.
+
+    Returns:
+        bool: True if successful, False otherwise.
+    """
+    authtoken = aus_authentication()
+    base64rma = convert_to_base64_case_id(case_id)
+    url = f"{config['asus_upload_attachment_to_case_api']}/{base64rma}"
+    headers = {
+        "Authorization": f"Bearer {authtoken}",
+    }
+    payload = {
+        "serial_number": serial_number,
+        "comment": comment,
+        "user_id": "123456789",
+        "rma_number": case_id,
+    }
+
+    try:
+        response = requests.post(url, headers=headers, json=payload)
+        if response.status_code == 200:
+            result = response.json().get("result")
+            file_id = result.get("file_id")
+            if not file_id:
+                log.info("File ID not found in response")
+                return False
+
+            with open(file_path, "rb") as file:
+                files = {"fileId": (None, file_id), "file": (file_name, file)}
+                response = requests.post(f"{url}/upload", headers=headers, files=files)
+                if response.status_code == 200:
+                    log.info("Attachment Uploaded Successfully")
+                    return True
+                else:
+                    log.info(f"Failed to upload attachment: {response.text}")
+                    return False
+        else:
+            log.info("Failed to initiate attachment upload")
+            return False
+    except Exception as e:
+        log.info(f"Exception Occurred: {e}")
+        return False
