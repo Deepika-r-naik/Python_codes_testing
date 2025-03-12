@@ -1,56 +1,27 @@
-<!--- Handle project sites for both new and existing reports --->
-					<cfif dataDetails.ReportId NEQ "0">
-						<!--- For existing reports, only delete if we have projectSiteIds key --->
-						<cfif structKeyExists(dataDetails, "projectSiteIds")>
-							<!--- First delete existing entries --->
-							<cfquery name="qryDeleteProjectSites" datasource="#Session.DBSource#">
-								DELETE FROM Dailyreport_ProjectSite
-								WHERE reportId = <cfqueryparam cfsqltype="cf_sql_integer" value="#dataDetails.reportId#">
-							</cfquery>
-							
-							<!--- Then insert the new entries --->
-							<cfif isArray(dataDetails.projectSiteIds) AND arrayLen(dataDetails.projectSiteIds) GT 0>
-								<cfloop array="#dataDetails.projectSiteIds#" index="projectSiteId">
-									<cfquery name="qryInsertProjectSite" datasource="#Session.DBSource#">
-										INSERT INTO Dailyreport_ProjectSite (
-											reportId,
-											projectSiteId
-										) VALUES (
-											<cfqueryparam cfsqltype="cf_sql_integer" value="#dataDetails.reportId#">,
-											<cfqueryparam cfsqltype="cf_sql_integer" value="#projectSiteId#">
-										)
-									</cfquery>
-								</cfloop>
-							</cfif>
-						</cfif>
-					<cfelse>
-						<!--- For new reports, handle project sites directly --->
-						<cfif structKeyExists(dataDetails, "projectSiteIds") AND isArray(dataDetails.projectSiteIds) AND arrayLen(dataDetails.projectSiteIds) GT 0>
-							<cfloop array="#dataDetails.projectSiteIds#" index="projectSiteId">
-								<cfquery name="qryDailyreportProjectSite" datasource="#Session.DBSource#">
-									INSERT INTO Dailyreport_ProjectSite (
-										reportId,
-										projectSiteId
-									) VALUES (
-										<cfqueryparam cfsqltype="cf_sql_integer" value="#reportId#">,
-										<cfqueryparam value="#projectSiteId#" cfsqltype="cf_sql_integer">
-									)
-								</cfquery>
-							</cfloop>
-						</cfif>
-					</cfif>
+<!--- Determine if editing or inserting a new report --->
+<cfif dataDetails.ReportId EQ "0">
+    <!--- New report: Assign new Report ID --->
+    <cfset reportId = qryDailyReport.reportId>
+<cfelse>
+    <!--- Existing report: Use provided Report ID --->
+    <cfset reportId = dataDetails.ReportId>
 
-		<cfset reportId = qryDailyReport.reportId>
-					<cfif structKeyExists(dataDetails, "projectSiteIds") AND isArray(dataDetails.projectSiteIds) AND arrayLen(dataDetails.projectSiteIds) GT 0>
-						<cfloop array="#dataDetails.projectSiteIds#" index="projectSiteId">
-							<cfquery name="qryDailyreportProjectSite" datasource="#Session.DBSource#">
-								INSERT INTO Dailyreport_ProjectSite (
-									reportId,
-									projectSiteId
-								) VALUES (
-									<cfqueryparam cfsqltype="cf_sql_integer" value="#reportId#">,
-									<cfqueryparam value="#projectSiteId#" cfsqltype="cf_sql_integer">
-								)
-							</cfquery>
-						</cfloop>
-					</cfif>
+    <!--- Delete existing project site associations --->
+    <cfquery name="qryDeleteProjectSites" datasource="#Session.DBSource#">
+        DELETE FROM Dailyreport_ProjectSite
+        WHERE reportId = <cfqueryparam cfsqltype="cf_sql_integer" value="#reportId#">
+    </cfquery>
+</cfif>
+
+<!--- Insert new project site associations if there are any --->
+<cfif structKeyExists(dataDetails, "projectSiteIds") AND arrayLen(dataDetails.projectSiteIds) GT 0>
+    <cfquery name="qryInsertProjectSites" datasource="#Session.DBSource#">
+        INSERT INTO Dailyreport_ProjectSite (reportId, projectSiteId)
+        VALUES 
+        <cfloop array="#dataDetails.projectSiteIds#" index="projectSiteId">
+            (<cfqueryparam cfsqltype="cf_sql_integer" value="#reportId#">,
+            <cfqueryparam cfsqltype="cf_sql_integer" value="#projectSiteId#">)
+            <cfif NOT arrayLast(dataDetails.projectSiteIds) EQ projectSiteId>,</cfif>
+        </cfloop>
+    </cfquery>
+</cfif>
