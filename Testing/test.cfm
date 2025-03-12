@@ -1,36 +1,45 @@
-<!--- Check if it's a new report or an edit --->
-<cfif dataDetails.ReportId EQ "0">
-    <!--- Creating a new report: Fetch the newly created Report ID --->
-    <cfset reportId = qryDailyReport.reportId>
+<cfquery name="qryDailyReport" datasource="#Session.DBSource#">
+    INSERT INTO DailyReport (/* Other Columns */)
+    VALUES (/* Other Values */)
+</cfquery>
 
-    <cfif structKeyExists(dataDetails, "projectSiteIds") AND isArray(dataDetails.projectSiteIds) AND arrayLen(dataDetails.projectSiteIds) GT 0>
-        <cflog text="Processing #arrayLen(dataDetails.projectSiteIds)# project site IDs for new report #reportId#">
+<cfset reportId = qryDailyReport.generatedKey> <!-- Ensure this gets the correct ID -->
 
-        <cfloop array="#dataDetails.projectSiteIds#" index="projectSiteId">
-            <cfquery name="qryDailyreportProjectSite" datasource="#Session.DBSource#">
-                INSERT INTO Dailyreport_ProjectSite (
-                    reportId,
-                    projectSiteId
-                ) VALUES (
-                    <cfqueryparam cfsqltype="cf_sql_integer" value="#reportId#">,
-                    <cfqueryparam cfsqltype="cf_sql_integer" value="#projectSiteId#">
-                )
-            </cfquery>
-        </cfloop>
-    </cfif>
+<cfif structKeyExists(dataDetails, "projectSiteIds") AND arrayLen(dataDetails.projectSiteIds) GT 0>
+    <cfloop array="#dataDetails.projectSiteIds#" index="projectSiteId">
+        <cfquery name="qryInsertProjectSite" datasource="#Session.DBSource#">
+            INSERT INTO Dailyreport_ProjectSite (
+                reportId,
+                projectSiteId
+            ) VALUES (
+                <cfqueryparam cfsqltype="cf_sql_integer" value="#reportId#">,
+                <cfqueryparam cfsqltype="cf_sql_integer" value="#projectSiteId#">
+            )
+        </cfquery>
+    </cfloop>
+</cfif>
 
-<cfelse>
-    <!--- Editing an existing report: Delete old entries and insert new ones --->
+
+
+=================
+
+<cfquery name="qryUpdateDailyReport" datasource="#Session.DBSource#">
+    UPDATE DailyReport
+    SET /* Other Fields */
+    WHERE reportId = <cfqueryparam cfsqltype="cf_sql_integer" value="#dataDetails.reportId#">
+</cfquery>
+
+<cfif dataDetails.ReportId NEQ "0">
     <cfset reportId = dataDetails.ReportId>
 
+    <!--- First delete old project sites --->
     <cfquery name="qryDeleteProjectSites" datasource="#Session.DBSource#">
         DELETE FROM Dailyreport_ProjectSite
         WHERE reportId = <cfqueryparam cfsqltype="cf_sql_integer" value="#reportId#">
     </cfquery>
 
-    <cfif structKeyExists(dataDetails, "projectSiteIds") AND isArray(dataDetails.projectSiteIds) AND arrayLen(dataDetails.projectSiteIds) GT 0>
-        <cflog text="Processing #arrayLen(dataDetails.projectSiteIds)# project site IDs for existing report #reportId#">
-        
+    <!--- Insert new project sites --->
+    <cfif structKeyExists(dataDetails, "projectSiteIds") AND arrayLen(dataDetails.projectSiteIds) GT 0>
         <cfloop array="#dataDetails.projectSiteIds#" index="projectSiteId">
             <cfquery name="qryInsertProjectSite" datasource="#Session.DBSource#">
                 INSERT INTO Dailyreport_ProjectSite (
